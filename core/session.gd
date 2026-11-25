@@ -10,6 +10,8 @@ var dragon: Dragon
 var food: Vector2i = Vector2i(-1,-1)
 var score:= 0
 var random:= RandomNumberGenerator.new()
+var started := false
+var game_over := false
 
 func _init(grid_size: Vector2i) -> void:
 	board = Board.bordered(grid_size)
@@ -28,13 +30,29 @@ func food_spawn() -> void:
 		return
 	food = cells_free[random.randi_range(0, cells_free.size()-1)]
 
+func turn(direction: Vector2i) -> void:
+	if game_over:
+		return
+	started = true
+	dragon.turn(direction)
+
 
 ## One step of the rules. TODO for D4: food, growth, and collisions with the dragon's
 ## own body and with solid tiles (board.is_solid). Each needs the dragon and something
 ## else, which is why they go here rather than in Dragon.tick.
 func tick() -> void:
+	if not started or game_over:
+		return
+	
+	var prev_body := dragon.body.duplicate()
 	var last_tail: Vector2i = dragon.body.back()
 	dragon.tick()
+	var head: Vector2i = dragon.body[0]
+	if board.is_solid(head) or head in dragon.body.slice(1):
+		game_over = true
+		dragon.body = prev_body
+		return
+
 	if dragon.body[0] == food:
 		dragon.body.append(last_tail)
 		score +=1

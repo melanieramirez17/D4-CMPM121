@@ -34,13 +34,26 @@ func _ready() -> void:
 	score.position = Vector2(20, 20)
 	score.add_theme_font_size_override("font_size", 28)
 	_draw_dragon()
+	_draw_food()
 
 
 ## Input arrives as events, so even a tap shorter than one frame is never missed.
 func _unhandled_input(event: InputEvent) -> void:
+
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_R and session.game_over:
+			session = Session.new(GRID)
+			_draw_dragon()
+			_draw_food()
+			return
+	
+	if session.game_over:
+		return
+
 	for action in DIRECTIONS:
 		if event.is_action_pressed(action):
 			session.dragon.turn(DIRECTIONS[action])
+			session.started = true
 
 
 func _process(delta: float) -> void:
@@ -89,7 +102,12 @@ func _draw_food() -> void:
 	if food.visible:
 		food.position = _center(session.food)
 
-	score.text = "Score: %d" % session.score
+	if session.game_over:
+		score.text = "You lost! Score: %d Press R to restart" % session.score
+	elif not session.started:
+		score.text = "Use the arrow keys to start"
+	else:
+		score.text = "Score: %d" % session.score
 
 
 func _center(cell: Vector2i) -> Vector3:
