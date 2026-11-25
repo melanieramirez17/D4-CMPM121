@@ -11,7 +11,9 @@
   // the real bpy is a compiled module, so silence "could not be resolved from source".
   "python.analysis.extraPaths": [".tools/python-stubs"],
   "python.analysis.typeCheckingMode": "off",
-  "python.analysis.diagnosticSeverityOverrides": { "reportMissingModuleSource": "none" },
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportMissingModuleSource": "none"
+  },
 
   // Deno: only the TypeScript in scripts/.
   "deno.enablePaths": ["scripts"],

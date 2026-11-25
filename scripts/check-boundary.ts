@@ -43,7 +43,10 @@ async function scriptsIn(dir: string): Promise<string[]> {
 
 // Drop string literals, then comments, so "Input" in a message or a note is fine.
 function codeOnly(line: string): string {
-  return line.replace(/"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/g, '""').replace(/#.*/, "");
+  return line.replace(/"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/g, '""').replace(
+    /#.*/,
+    "",
+  );
 }
 
 const files = await scriptsIn(CORE);
@@ -64,16 +67,26 @@ for (const [file, text] of lines) {
     const where = `${file}:${i + 1}`;
     const base = line.match(/^extends\s+(\w+)/)?.[1];
     if (base && !ALLOWED_BASES.has(base) && !coreClasses.has(base)) {
-      violations.push(`${where} extends ${base}, which is not RefCounted or a core/ class`);
+      violations.push(
+        `${where} extends ${base}, which is not RefCounted or a core/ class`,
+      );
     }
     const word = line.replace(/^extends\s+\w+/, "").match(ENGINE_WORD)?.[1];
-    if (word) violations.push(`${where} uses ${word}, which belongs to the engine side`);
-    if (NODE_PATH.test(line)) violations.push(`${where} reaches for a node with $`);
+    if (word) {
+      violations.push(
+        `${where} uses ${word}, which belongs to the engine side`,
+      );
+    }
+    if (NODE_PATH.test(line)) {
+      violations.push(`${where} reaches for a node with $`);
+    }
   });
 }
 
 if (violations.length > 0) {
-  console.error("Boundary check failed: core/ must not depend on the scene tree, input, or the screen.\n");
+  console.error(
+    "Boundary check failed: core/ must not depend on the scene tree, input, or the screen.\n",
+  );
   for (const violation of violations) console.error(`  ${violation}`);
   console.error(`
 The core has to run headless, with no window and no scene, which is what lets

@@ -7,17 +7,19 @@ extends RefCounted
 var board: Board
 var dragon: Dragon
 
-var food: Vector2i = Vector2i(-1,-1)
-var score:= 0
-var random:= RandomNumberGenerator.new()
+var food: Vector2i = Vector2i(-1, -1)
+var score := 0
+var random := RandomNumberGenerator.new()
 var started := false
 var game_over := false
+
 
 func _init(grid_size: Vector2i) -> void:
 	board = Board.bordered(grid_size)
 	dragon = Dragon.new(grid_size)
-	random.seed = 121;
+	random.seed = 121
 	food_spawn()
+
 
 func food_spawn() -> void:
 	var cells_free: Array[Vector2i] = []
@@ -26,9 +28,10 @@ func food_spawn() -> void:
 			cells_free.append(cell)
 
 	if cells_free.is_empty():
-		food = Vector2i(-1,-1)
+		food = Vector2i(-1, -1)
 		return
-	food = cells_free[random.randi_range(0, cells_free.size()-1)]
+	food = cells_free[random.randi_range(0, cells_free.size() - 1)]
+
 
 func turn(direction: Vector2i) -> void:
 	if game_over:
@@ -43,7 +46,7 @@ func turn(direction: Vector2i) -> void:
 func tick() -> void:
 	if not started or game_over:
 		return
-	
+
 	var prev_body := dragon.body.duplicate()
 	var last_tail: Vector2i = dragon.body.back()
 	dragon.tick()
@@ -55,5 +58,5 @@ func tick() -> void:
 
 	if dragon.body[0] == food:
 		dragon.body.append(last_tail)
-		score +=1
+		score += 1
 		food_spawn()

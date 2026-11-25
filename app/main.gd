@@ -25,7 +25,7 @@ func _ready() -> void:
 	meshes = Stage.load_kit()
 	_build_stage()
 
-	food.mesh = meshes["food"];
+	food.mesh = meshes["food"]
 	add_child(food)
 
 	var hud := CanvasLayer.new()
@@ -39,14 +39,13 @@ func _ready() -> void:
 
 ## Input arrives as events, so even a tap shorter than one frame is never missed.
 func _unhandled_input(event: InputEvent) -> void:
-
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_R and session.game_over:
 			session = Session.new(GRID)
 			_draw_dragon()
 			_draw_food()
 			return
-	
+
 	if session.game_over:
 		return
 
@@ -96,6 +95,7 @@ func _draw_dragon() -> void:
 		segment.mesh = meshes[Kit.Piece.keys()[placed[i][0]].to_lower()]
 		segment.position = _center(cell)
 		segment.rotation.y = placed[i][1] * PI / 2
+
 
 func _draw_food() -> void:
 	food.visible = session.food != Vector2i(-1, -1)

@@ -10,7 +10,9 @@
 import { fromFileUrl } from "jsr:@std/path@1";
 
 const VERSION = "5.2"; // keep in step with bpy in tools/build_art.py
-const DEFAULT = fromFileUrl(new URL("../art/dragon_kit.blend", import.meta.url));
+const DEFAULT = fromFileUrl(
+  new URL("../art/dragon_kit.blend", import.meta.url),
+);
 
 // Where each OS's installer puts Blender. On Windows the folder name carries the
 // version ("Blender 5.2"), so we list them all and take the newest.
@@ -26,12 +28,16 @@ async function candidates(): Promise<string[]> {
     const foundation = `${programFiles}\\Blender Foundation`;
     const versions: string[] = [];
     try {
-      for await (const entry of Deno.readDir(foundation)) versions.push(entry.name);
+      for await (const entry of Deno.readDir(foundation)) {
+        versions.push(entry.name);
+      }
     } catch { /* not installed this way */ }
     versions.sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
     found.push(...versions.map((v) => `${foundation}\\${v}\\blender.exe`));
     const steam = Deno.env.get("ProgramFiles(x86)");
-    if (steam) found.push(`${steam}\\Steam\\steamapps\\common\\Blender\\blender.exe`);
+    if (steam) {
+      found.push(`${steam}\\Steam\\steamapps\\common\\Blender\\blender.exe`);
+    }
   }
   // Linux packages (apt, snap) and some manual installs put `blender` on PATH.
   const exe = Deno.build.os === "windows" ? "blender.exe" : "blender";
@@ -64,17 +70,25 @@ async function blenderPath(): Promise<string | undefined> {
 
 const blender = await blenderPath();
 if (!blender) {
-  console.error(`blender.ts: no Blender app found. Install Blender ${VERSION} from`);
-  console.error("https://www.blender.org/download/ (on an Intel Mac, 4.5 LTS, to match deno task art:lts),");
+  console.error(
+    `blender.ts: no Blender app found. Install Blender ${VERSION} from`,
+  );
+  console.error(
+    "https://www.blender.org/download/ (on an Intel Mac, 4.5 LTS, to match deno task art:lts),",
+  );
   console.error("or set BLENDER=/path/to/blender if it lives somewhere else.");
-  console.error("You do not need it for the game: deno task art and the .glb are enough.");
+  console.error(
+    "You do not need it for the game: deno task art and the .glb are enough.",
+  );
   Deno.exit(1);
 }
 
 const args = [...Deno.args];
 if (!args[0]?.endsWith(".blend")) args.unshift(DEFAULT);
 if (!(await exists(args[0]))) {
-  console.error(`blender.ts: ${args[0]} does not exist yet; run deno task art first.`);
+  console.error(
+    `blender.ts: ${args[0]} does not exist yet; run deno task art first.`,
+  );
   Deno.exit(1);
 }
 console.log(`Opening ${args[0]} with ${blender}`);

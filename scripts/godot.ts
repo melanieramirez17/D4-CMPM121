@@ -6,20 +6,30 @@
 // Set GODOT=/path/to/godot to use your own install instead of .tools/.
 
 const VERSION = "4.7.2";
-const RELEASE = `https://github.com/godotengine/godot/releases/download/${VERSION}-stable`;
+const RELEASE =
+  `https://github.com/godotengine/godot/releases/download/${VERSION}-stable`;
 import { fromFileUrl } from "jsr:@std/path@1";
 
 const TOOLS = fromFileUrl(new URL("../.tools/", import.meta.url));
 
 // Editor builds per platform: [zip on the release page, binary inside .tools/].
-const MAC: [string, string] = ["macos.universal.zip", "Godot.app/Contents/MacOS/Godot"];
+const MAC: [string, string] = [
+  "macos.universal.zip",
+  "Godot.app/Contents/MacOS/Godot",
+];
 const EDITORS: Record<string, [string, string]> = {
   "darwin-aarch64": MAC,
   "darwin-x86_64": MAC,
   "linux-x86_64": ["linux.x86_64.zip", `Godot_v${VERSION}-stable_linux.x86_64`],
   "linux-aarch64": ["linux.arm64.zip", `Godot_v${VERSION}-stable_linux.arm64`],
-  "windows-x86_64": ["win64.exe.zip", `Godot_v${VERSION}-stable_win64_console.exe`],
-  "windows-aarch64": ["windows_arm64.exe.zip", `Godot_v${VERSION}-stable_windows_arm64_console.exe`],
+  "windows-x86_64": [
+    "win64.exe.zip",
+    `Godot_v${VERSION}-stable_win64_console.exe`,
+  ],
+  "windows-aarch64": [
+    "windows_arm64.exe.zip",
+    `Godot_v${VERSION}-stable_windows_arm64_console.exe`,
+  ],
 };
 const PLATFORM = `${Deno.build.os}-${Deno.build.arch}`;
 
@@ -30,7 +40,11 @@ function godotPath(): string {
   const custom = Deno.env.get("GODOT");
   if (custom) return custom;
   const editor = EDITORS[PLATFORM];
-  if (!editor) throw new Error(`No Godot build listed for ${PLATFORM}; set GODOT=/path/to/godot`);
+  if (!editor) {
+    throw new Error(
+      `No Godot build listed for ${PLATFORM}; set GODOT=/path/to/godot`,
+    );
+  }
   return TOOLS + editor[1];
 }
 
@@ -42,7 +56,10 @@ async function run(args: string[]): Promise<number> {
   }).spawn();
   let sawFailure = false;
   let sawFontconfig = false;
-  const relay = async (stream: ReadableStream<Uint8Array>, out: typeof Deno.stdout) => {
+  const relay = async (
+    stream: ReadableStream<Uint8Array>,
+    out: typeof Deno.stdout,
+  ) => {
     for await (const chunk of stream) {
       const text = new TextDecoder().decode(chunk);
       if (FAILURE.test(text)) sawFailure = true;
@@ -50,14 +67,23 @@ async function run(args: string[]): Promise<number> {
       await out.write(chunk);
     }
   };
-  await Promise.all([relay(child.stdout, Deno.stdout), relay(child.stderr, Deno.stderr)]);
+  await Promise.all([
+    relay(child.stdout, Deno.stdout),
+    relay(child.stderr, Deno.stderr),
+  ]);
   const { code } = await child.status;
   if (sawFontconfig) {
-    console.error("\ngodot.ts: the fontconfig errors above are harmless; to silence them on Linux,");
-    console.error("install the font library: sudo apt install libfontconfig1 (or your distro's fontconfig).");
+    console.error(
+      "\ngodot.ts: the fontconfig errors above are harmless; to silence them on Linux,",
+    );
+    console.error(
+      "install the font library: sudo apt install libfontconfig1 (or your distro's fontconfig).",
+    );
   }
   if (code === 0 && sawFailure) {
-    console.error("\ngodot.ts: Godot exited 0 but printed script errors; treating as failure.");
+    console.error(
+      "\ngodot.ts: Godot exited 0 but printed script errors; treating as failure.",
+    );
     return 1;
   }
   return code;
@@ -68,7 +94,9 @@ async function run(args: string[]): Promise<number> {
 async function download(url: string, dest: string) {
   console.log(`Downloading ${url}`);
   const response = await fetch(url);
-  if (!response.ok || !response.body) throw new Error(`${response.status} for ${url}`);
+  if (!response.ok || !response.body) {
+    throw new Error(`${response.status} for ${url}`);
+  }
   await response.body.pipeTo((await Deno.create(dest)).writable);
 }
 
@@ -79,7 +107,16 @@ async function unzip(zip: string, dir: string) {
     ? [["tar", ["-xf", zip, "-C", dir]]]
     : [
       ["unzip", ["-q", "-o", zip, "-d", dir]],
-      ["uv", ["run", "--no-project", "python", "-m", "zipfile", "-e", zip, dir]],
+      ["uv", [
+        "run",
+        "--no-project",
+        "python",
+        "-m",
+        "zipfile",
+        "-e",
+        zip,
+        dir,
+      ]],
     ];
   for (const [cmd, args] of attempts) {
     try {
@@ -97,13 +134,24 @@ async function unzip(zip: string, dir: string) {
 // The export templates archive is 1.3 GB, but we only need one 10 MB file in it.
 // A zip keeps its table of contents at the end, so we read that first, then
 // fetch just the bytes of the entry we want using HTTP range requests.
-async function fetchRange(url: string, start: number, end: number): Promise<Uint8Array<ArrayBuffer>> {
-  const response = await fetch(url, { headers: { Range: `bytes=${start}-${end}` } });
-  if (response.status !== 206) throw new Error(`Range request failed: ${response.status}`);
+async function fetchRange(
+  url: string,
+  start: number,
+  end: number,
+): Promise<Uint8Array<ArrayBuffer>> {
+  const response = await fetch(url, {
+    headers: { Range: `bytes=${start}-${end}` },
+  });
+  if (response.status !== 206) {
+    throw new Error(`Range request failed: ${response.status}`);
+  }
   return new Uint8Array(await response.arrayBuffer());
 }
 
-async function extractRemoteEntry(url: string, name: string): Promise<Uint8Array<ArrayBuffer>> {
+async function extractRemoteEntry(
+  url: string,
+  name: string,
+): Promise<Uint8Array<ArrayBuffer>> {
   const probe = await fetch(url, { headers: { Range: "bytes=0-0" } });
   await probe.body?.cancel();
   const size = Number(probe.headers.get("content-range")?.split("/")[1]);
@@ -122,13 +170,20 @@ async function extractRemoteEntry(url: string, name: string): Promise<Uint8Array
     const extraLength = d.getUint16(p + 30, true);
     const commentLength = d.getUint16(p + 32, true);
     const local = d.getUint32(p + 42, true);
-    const entry = new TextDecoder().decode(dir.subarray(p + 46, p + 46 + nameLength));
+    const entry = new TextDecoder().decode(
+      dir.subarray(p + 46, p + 46 + nameLength),
+    );
     if (entry === name) {
-      const header = new DataView((await fetchRange(url, local, local + 29)).buffer);
-      const start = local + 30 + header.getUint16(26, true) + header.getUint16(28, true);
+      const header = new DataView(
+        (await fetchRange(url, local, local + 29)).buffer,
+      );
+      const start = local + 30 + header.getUint16(26, true) +
+        header.getUint16(28, true);
       const data = await fetchRange(url, start, start + compressed - 1);
       if (method === 0) return data;
-      const inflated = new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+      const inflated = new Blob([data]).stream().pipeThrough(
+        new DecompressionStream("deflate-raw"),
+      );
       return new Uint8Array(await new Response(inflated).arrayBuffer());
     }
     p += 46 + nameLength + extraLength + commentLength;
@@ -153,12 +208,16 @@ async function linkForEditors() {
 async function setup() {
   if (Deno.env.get("GODOT")) {
     await Deno.stat(godotPath()); // throws NotFound if GODOT points nowhere
-    console.log(`Using GODOT=${godotPath()}. Install its Web export template from the editor:`);
+    console.log(
+      `Using GODOT=${godotPath()}. Install its Web export template from the editor:`,
+    );
     console.log("Editor > Manage Export Templates > Download and Install.");
     return;
   }
   await Deno.mkdir(TOOLS, { recursive: true });
-  if (!EDITORS[PLATFORM]) throw new Error(`No Godot build listed for ${PLATFORM}`);
+  if (!EDITORS[PLATFORM]) {
+    throw new Error(`No Godot build listed for ${PLATFORM}`);
+  }
   const [zipName] = EDITORS[PLATFORM];
   try {
     await Deno.stat(godotPath());
@@ -190,15 +249,24 @@ async function setup() {
     await Deno.stat(templates + template);
     console.log("Web export template already present");
   } catch {
-    console.log(`Fetching only templates/${template} from the export templates archive`);
+    console.log(
+      `Fetching only templates/${template} from the export templates archive`,
+    );
     const tpz = `${RELEASE}/Godot_v${VERSION}-stable_export_templates.tpz`;
     await Deno.mkdir(templates, { recursive: true });
-    await Deno.writeFile(templates + template, await extractRemoteEntry(tpz, `templates/${template}`));
+    await Deno.writeFile(
+      templates + template,
+      await extractRemoteEntry(tpz, `templates/${template}`),
+    );
   }
   console.log(`Ready: ${godotPath()}`);
   if (PLATFORM === "linux-aarch64") {
-    console.log("Note: Blender's Python package has no ARM Linux build, so `deno task art` won't run here.");
-    console.log("Godot tasks work; the committed art/*.glb files are enough, and a partner can regenerate them.");
+    console.log(
+      "Note: Blender's Python package has no ARM Linux build, so `deno task art` won't run here.",
+    );
+    console.log(
+      "Godot tasks work; the committed art/*.glb files are enough, and a partner can regenerate them.",
+    );
   }
 }
 
