@@ -5,8 +5,7 @@ it to learn where your project is headed. Replace each _italic prompt_.
 
 ## Target
 
-_One or two sentences: what is this creature, what does it eat, where does it
-live, and what should playing feel like?_
+The creature is a pool shark that eats pool toys like beach balls, and it lives in the pool. Playing this game should feel silly.
 
 ## Menu choices
 
@@ -29,7 +28,7 @@ are already here from the starter; keep them accurate as you change things.
 | tick      | one step of the rules; the dragon moves one cell                                      | `Session.tick()`, `Dragon.tick()`              |
 | tile kind | what a cell is made of, such as `floor` or `wall`                                     | `Board.TILES`, `TILES` in `tools/build_art.py` |
 | piece     | one model in the kit: head, straight, turn, tail                                      | `Kit.Piece`, `PIECES` in `tools/build_art.py`  |
-| _word_    | _meaning_                                                                             | _where_                                        |
+| beach ball    | food the pool shark eats to get bigger                                                                             | `build_food()` in `tools/build_art.py`                                        |
 
 ## Where things live
 

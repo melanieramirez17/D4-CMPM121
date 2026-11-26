@@ -97,7 +97,11 @@ def make_materials():
         "t": pbr_material("Moss", "#6f8558", roughness=0.9),
         "w": pbr_material("Brick", "#6b4d3d", roughness=0.9),
         "b": pbr_material("Black", "#000000", roughness=0.75),
-        "f": pbr_material("Orange", "#f57842", roughness=0.75)
+        "f": pbr_material("Orange", "#f57842", roughness=0.75),
+        "u": pbr_material("White", "#ffffff", roughness=0.75),
+        "B": pbr_material("Blue", "#1244db", roughness=0.75),
+        "y": pbr_material("Yellow", "#ede742", roughness=0.75),
+        "r": pbr_material("Red", "#eb3f2f", roughness=0.75)
     })
 
 
@@ -177,15 +181,20 @@ def build_tail(bm):
 
 def build_food(bm):
     voxels(bm, ["""
-        ....
-        .ff.
-        .ff.
-        ....
+        .ruy.
+        .uuu.
+        .Buf.
+        .....
     """, """
-        ....
-        .ff.
-        .ff.
-        ....
+        .ruy.
+        .uuu.
+        .Buf.
+        .....
+    """, """
+        .ruy.
+        .uuu.
+        .Buf.
+        .....
     """])
 
 
